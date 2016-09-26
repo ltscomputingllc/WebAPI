@@ -1,8 +1,9 @@
 package org.ohdsi.webapi.shiro.Entities;
 
-import javax.persistence.*;
 import java.io.Serializable;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import javax.persistence.*;
 
 /**
  * Created by GMalikov on 24.08.2015.
@@ -12,37 +13,53 @@ import java.util.Set;
 @Table(name = "SEC_ROLE")
 public class RoleEntity implements Serializable{
 
-    private static final long serialVersionUID = 6257846375334314942L;
+  private static final long serialVersionUID = 6257846375334314942L;
 
-    private Long id;
-    private String name;
-    private Set<PermissionEntity> permissions;
+  @Id
+  @Column(name = "ID")
+  @SequenceGenerator(name = "SEC_ROLE_SEQUENCE_GENERATOR", sequenceName = "SEC_ROLE_SEQUENCE", allocationSize = 1, initialValue = 1000)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEC_ROLE_SEQUENCE_GENERATOR")
+  private Long id;
 
-    @Id
-    @Column(name = "ID")
-    public Long getId() {
-        return id;
-    }
+  @Column(name = "NAME")
+  private String name;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  @OneToMany(mappedBy = "role", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+  private Set<RolePermissionEntity> rolePermissions = new LinkedHashSet<>();
 
-    @Column(name = "NAME")
-    public String getName() {
-        return name;
-    }
+  @OneToMany(mappedBy = "role", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+  private Set<UserRoleEntity> userRoles = new LinkedHashSet<>();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  
+  public Long getId() {
+    return id;
+  }
 
-    @OneToMany(mappedBy = "role", fetch = FetchType.EAGER)
-    public Set<PermissionEntity> getPermissions() {
-        return permissions;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public void setPermissions(Set<PermissionEntity> permissions) {
-        this.permissions = permissions;
-    }
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public Set<RolePermissionEntity> getRolePermissions() {
+    return rolePermissions;
+  }
+
+  public void setRolePermissions(Set<RolePermissionEntity> rolePermissions) {
+    this.rolePermissions = rolePermissions;
+  }
+
+  public Set<UserRoleEntity> getUserRoles() {
+    return userRoles;
+  }
+
+  public void setUserRoles(Set<UserRoleEntity> userRoles) {
+    this.userRoles = userRoles;
+  }
 }

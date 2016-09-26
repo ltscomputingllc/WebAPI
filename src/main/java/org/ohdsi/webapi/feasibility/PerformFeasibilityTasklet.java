@@ -28,7 +28,7 @@ import org.ohdsi.sql.SqlTranslate;
 import org.ohdsi.webapi.cohortdefinition.CohortDefinition;
 import org.ohdsi.webapi.cohortdefinition.CohortDefinitionRepository;
 import org.ohdsi.webapi.cohortdefinition.CohortGenerationInfo;
-import org.ohdsi.webapi.cohortdefinition.GenerationStatus;
+import org.ohdsi.webapi.GenerationStatus;
 import org.ohdsi.webapi.helper.ResourceHelper;
 import org.ohdsi.webapi.util.SessionUtils;
 import org.springframework.batch.core.StepContribution;
@@ -91,8 +91,9 @@ public class PerformFeasibilityTasklet implements Tasklet {
   
   private void prepareTempTables(FeasibilityStudy study, String dialect, String sessionId)
   {
-      String translatedSql = SqlTranslate.translateSql(CREATE_TEMP_TABLES_TEMPLATE, "sql server", dialect, SessionUtils.sessionId(), null);
-      this.jdbcTemplate.execute(translatedSql);
+      String translatedSql = SqlTranslate.translateSql(CREATE_TEMP_TABLES_TEMPLATE, "sql server", dialect, sessionId, null);
+      String[] sqlStatements = SqlSplit.splitSql(translatedSql);
+      this.jdbcTemplate.batchUpdate(sqlStatements);
       
       String insertSql = SqlTranslate.translateSql("INSERT INTO #inclusionRules (study_id, sequence, name) VALUES (?,?,?)","sql server", dialect, sessionId, null);
       List<InclusionRule> inclusionRules = study.getInclusionRules();
@@ -105,8 +106,9 @@ public class PerformFeasibilityTasklet implements Tasklet {
   
   private void cleanupTempTables(String dialect, String sessionId)
   {
-    String translatedSql = SqlTranslate.translateSql(DROP_TEMP_TABLES_TEMPLATE, "sql server", dialect, SessionUtils.sessionId(), null);
-    this.jdbcTemplate.execute(translatedSql);
+    String translatedSql = SqlTranslate.translateSql(DROP_TEMP_TABLES_TEMPLATE, "sql server", dialect, sessionId, null);
+    String[] sqlStatements = SqlSplit.splitSql(translatedSql);
+    this.jdbcTemplate.batchUpdate(sqlStatements);
   }
   
   private int[] doTask(ChunkContext chunkContext) {

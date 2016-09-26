@@ -1,8 +1,9 @@
 package org.ohdsi.webapi.shiro.Entities;
 
-import javax.persistence.*;
 import java.io.Serializable;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import javax.persistence.*;
 
 /**
  * Created by GMalikov on 24.08.2015.
@@ -12,37 +13,49 @@ import java.util.Set;
 @Table(name = "SEC_PERMISSION")
 public class PermissionEntity implements Serializable {
 
-    private static final long serialVersionUID = 1810877985769153135L;
-    private Long id;
-    private String value;
-    private RoleEntity role;
+  private static final long serialVersionUID = 1810877985769153135L;
+  private Long id;
+  private String value;
+  private String description;
+  private Set<RolePermissionEntity> rolePermissions = new LinkedHashSet<>();
 
-    @Id
-    @Column(name = "ID")
-    public Long getId() {
-        return id;
-    }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  @Id
+  @Column(name = "ID")
+  @SequenceGenerator(name = "SEC_PERMISSION_SEQUENCE_GENERATOR", sequenceName = "SEC_PERMISSION_SEQUENCE", allocationSize = 1, initialValue = 1000)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEC_PERMISSION_SEQUENCE_GENERATOR")
+  public Long getId() {
+    return id;
+  }
 
-    @Column(name = "VALUE")
-    public String getValue() {
-        return value;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
+  @Column(name = "VALUE")
+  public String getValue() {
+    return value;
+  }
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, targetEntity = RoleEntity.class, fetch = FetchType.LAZY)
-    @JoinColumn(name = "ROLE_ID")
-    public RoleEntity getRole() {
-        return role;
-    }
+  public void setValue(String value) {
+    this.value = value;
+  }
 
-    public void setRole(RoleEntity role) {
-        this.role = role;
-    }
+  @Column(name = "DESCRIPTION")
+  public String getDescription() {
+    return this.description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  @OneToMany(mappedBy = "permission", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+  public Set<RolePermissionEntity> getRolePermissions() {
+    return rolePermissions;
+  }
+
+  public void setRolePermissions(Set<RolePermissionEntity> rolePermissions) {
+    this.rolePermissions = rolePermissions;
+  }
 }

@@ -29,10 +29,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -45,22 +43,22 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 import org.ohdsi.sql.SqlTranslate;
-import org.ohdsi.webapi.feasibility.InclusionRule;
-import org.ohdsi.webapi.feasibility.FeasibilityStudy;
-import org.ohdsi.webapi.feasibility.PerformFeasibilityTasklet;
-import org.ohdsi.webapi.feasibility.StudyGenerationInfo;
-import org.ohdsi.webapi.feasibility.FeasibilityReport;
-import org.ohdsi.webapi.cohortdefinition.CohortDefinition;
-import org.ohdsi.webapi.cohortdefinition.CohortDefinitionRepository;
+import org.ohdsi.webapi.GenerationStatus;
 import org.ohdsi.webapi.TerminateJobStepExceptionHandler;
+import org.ohdsi.webapi.cohortdefinition.CohortDefinition;
 import org.ohdsi.webapi.cohortdefinition.CohortDefinitionDetails;
+import org.ohdsi.webapi.cohortdefinition.CohortDefinitionRepository;
 import org.ohdsi.webapi.cohortdefinition.CohortExpression;
 import org.ohdsi.webapi.cohortdefinition.CohortGenerationInfo;
 import org.ohdsi.webapi.cohortdefinition.CriteriaGroup;
 import org.ohdsi.webapi.cohortdefinition.ExpressionType;
-import org.ohdsi.webapi.feasibility.FeasibilityStudyRepository;
 import org.ohdsi.webapi.cohortdefinition.GenerateCohortTasklet;
-import org.ohdsi.webapi.cohortdefinition.GenerationStatus;
+import org.ohdsi.webapi.feasibility.FeasibilityReport;
+import org.ohdsi.webapi.feasibility.FeasibilityStudy;
+import org.ohdsi.webapi.feasibility.FeasibilityStudyRepository;
+import org.ohdsi.webapi.feasibility.InclusionRule;
+import org.ohdsi.webapi.feasibility.PerformFeasibilityTasklet;
+import org.ohdsi.webapi.feasibility.StudyGenerationInfo;
 import org.ohdsi.webapi.job.JobExecutionResource;
 import org.ohdsi.webapi.job.JobTemplate;
 import org.ohdsi.webapi.source.Source;
@@ -220,7 +218,7 @@ public class FeasibilityService extends AbstractDaoService {
         additionalCriteria.type = "ALL";
         indexRuleExpression.additionalCriteria = additionalCriteria;
       } else {
-        if ("ANY".equalsIgnoreCase(indexRuleExpression.additionalCriteria.type)) {
+        if (!"ALL".equalsIgnoreCase(indexRuleExpression.additionalCriteria.type)) {
           // move this CriteriaGroup inside a new parent CriteriaGroup where the parent CriteriaGroup.type == "ALL"
           CriteriaGroup parentGroup = new CriteriaGroup();
           parentGroup.type = "ALL";
@@ -253,7 +251,7 @@ public class FeasibilityService extends AbstractDaoService {
 
   private List<FeasibilityReport.InclusionRuleStatistic> getSimulationInclusionRuleStatistics(int id, Source source) {
     String resultsTableQualifier = source.getTableQualifier(SourceDaimon.DaimonType.Results);
-    String statisticsQuery = String.format("select rule_sequence, name, person_count, gain_count, person_total from %s.feas_study_inclusion_stats where study_id = %d", resultsTableQualifier, id);
+    String statisticsQuery = String.format("select rule_sequence, name, person_count, gain_count, person_total from %s.feas_study_inclusion_stats where study_id = %d ORDER BY rule_sequence", resultsTableQualifier, id);
     String translatedSql = SqlTranslate.translateSql(statisticsQuery, "sql server", source.getSourceDialect(), SessionUtils.sessionId(), resultsTableQualifier);
     return this.getSourceJdbcTemplate(source).query(translatedSql, inclusionRuleStatisticMapper);
   }
@@ -556,14 +554,16 @@ public class FeasibilityService extends AbstractDaoService {
     this.getTransactionTemplate().getTransactionManager().commit(initStatus);
 
     JobParametersBuilder builder = new JobParametersBuilder();
-    builder.addString("jobName", "Perform Study");
+    builder.addString("jobName", "performing feasibility study on " + indexRule.getName() + " : " + source.getSourceName() + " (" + source.getSourceKey() + ")");
     builder.addString("cdm_database_schema", cdmTableQualifier);
+    builder.addString("results_database_schema", resultsTableQualifier);
     builder.addString("target_database_schema", resultsTableQualifier);
     builder.addString("target_dialect", source.getSourceDialect());
     builder.addString("target_table", "cohort");
     builder.addString("cohort_definition_id", ("" + indexRule.getId()));
     builder.addString("study_id", ("" + study_id));
     builder.addString("source_id", ("" + source.getSourceId()));
+    builder.addString("generate_stats", Boolean.TRUE.toString());
 
     final JobParameters jobParameters = builder.toJobParameters();
     final JdbcTemplate sourceJdbcTemplate = getSourceJdbcTemplate(source);
@@ -638,6 +638,7 @@ public class FeasibilityService extends AbstractDaoService {
   @Path("/{id}/copy")
   @javax.transaction.Transactional
   public FeasibilityStudyDTO copy(@PathParam("id") final int id) {
+    
     FeasibilityStudyDTO sourceStudy = getStudy(id);
     sourceStudy.id = null; // clear the ID
     sourceStudy.name = "COPY OF: " + sourceStudy.name;
@@ -668,6 +669,7 @@ public class FeasibilityService extends AbstractDaoService {
   @Path("/{id}/info/{sourceKey}")
   @Transactional    
   public void deleteInfo(@PathParam("id") final int id, @PathParam("sourceKey") final String sourceKey) {
+
     FeasibilityStudy study = feasibilityStudyRepository.findOne(id);
     StudyGenerationInfo itemToRemove = null;
     for (StudyGenerationInfo info : study.getStudyGenerationInfoList())

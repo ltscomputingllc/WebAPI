@@ -1,8 +1,9 @@
 package org.ohdsi.webapi.shiro.Entities;
 
-import javax.persistence.*;
 import java.io.Serializable;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import javax.persistence.*;
 
 /**
  * Created by GMalikov on 24.08.2015.
@@ -11,81 +12,70 @@ import java.util.Set;
 @Entity(name = "UserEntity")
 @Table(name = "SEC_USER")
 public class UserEntity implements Serializable{
-    private static final long serialVersionUID = -2697485161468660016L;
 
+  private static final long serialVersionUID = -2697485161468660016L;
 
-    private Long id;
+  private Long id;
+  private String login;
+  private String password;
+  private String salt;
+  private String name;
+  private Set<UserRoleEntity> userRoles = new LinkedHashSet<>();
 
+  @Id
+  @Column(name = "ID")
+  @SequenceGenerator(name = "SEC_USER_SEQUENCE_GENERATOR", sequenceName = "SEC_USER_SEQUENCE", allocationSize = 1, initialValue = 1000)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEC_USER_SEQUENCE_GENERATOR")
+  public Long getId() {
+      return id;
+  }
 
-    private String login;
+  public void setId(Long id) {
+      this.id = id;
+  }
 
+  @Column(name = "LOGIN")
+  public String getLogin() {
+      return login;
+  }
 
-    private String password;
+  public void setLogin(String login) {
+      this.login = login;
+  }
 
+  @Column(name = "PASSWORD")
+  public String getPassword() {
+      return password;
+  }
 
-    private String salt;
+  public void setPassword(String password) {
+      this.password = password;
+  }
 
+  @Column(name = "SALT")
+  public String getSalt() {
+      return salt;
+  }
 
-    private String name;
+  public void setSalt(String salt) {
+      this.salt = salt;
+  }
 
-    private Set<RoleEntity> roles;
+  @Column(name = "NAME")
+  public String getName() {
+      return name;
+  }
 
-    @Id
-    @Column(name = "ID")
-    public Long getId() {
-        return id;
-    }
+  public void setName(String name) {
+      this.name = name;
+  }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+  public Set<UserRoleEntity> getUserRoles() {
+    return userRoles;
+  }
 
-    @Column(name = "LOGIN")
-    public String getLogin() {
-        return login;
-    }
-
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
-    @Column(name = "PASSWORD")
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    @Column(name = "SALT")
-    public String getSalt() {
-        return salt;
-    }
-
-    public void setSalt(String salt) {
-        this.salt = salt;
-    }
-
-    @Column(name = "NAME")
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, targetEntity = RoleEntity.class, fetch = FetchType.EAGER)
-    @JoinTable(name = "SEC_USER_ROLE",
-        joinColumns = {@JoinColumn(name = "USER_ID", nullable = false)},
-        inverseJoinColumns = {@JoinColumn(name = "ROLE_ID", nullable = true)})
-    public Set<RoleEntity> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<RoleEntity> roles) {
-        this.roles = roles;
-    }
-
+  public void setUserRoles(Set<UserRoleEntity> userRoles) {
+    this.userRoles = userRoles;
+  }
 }

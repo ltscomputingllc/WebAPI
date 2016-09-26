@@ -4,7 +4,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -12,7 +11,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-
 import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
 import org.ohdsi.webapi.helper.ResourceHelper;
@@ -138,6 +136,8 @@ public class JobService extends AbstractDaoService {
 
     if (comprehensivePage) {
       String sql_statement = ResourceHelper.GetResourceAsString("/resources/job/sql/jobExecutions.sql");
+      sql_statement = SqlRender.renderSql(sql_statement, new String[]{"ohdsi_schema"},
+              new String[]{this.getOhdsiSchema()});
       sql_statement = SqlTranslate.translateSql(sql_statement, "sql server", getDialect());
       log.debug("Translated sql:" + sql_statement);
 

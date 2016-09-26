@@ -9,6 +9,10 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.ohdsi.webapi.cohortcomparison.ComparativeCohortAnalysisExecutionRepository;
+import org.ohdsi.webapi.cohortcomparison.ComparativeCohortAnalysisRepository;
+import org.ohdsi.webapi.conceptset.ConceptSetItemRepository;
+import org.ohdsi.webapi.conceptset.ConceptSetRepository;
 import org.ohdsi.webapi.source.Source;
 import org.ohdsi.webapi.source.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,12 +28,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 public abstract class AbstractDaoService {
 
   protected final Log log = LogFactory.getLog(getClass());
-
-  @Value("${datasource.cdm.database}")
-  private String cdmDatabase;
-
-  @Value("${datasource.cdm.schema}")
-  private String cdmSchema;
 
   @Value("${datasource.ohdsi.schema}")
   private String ohdsiSchema;
@@ -49,10 +47,35 @@ public abstract class AbstractDaoService {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
-
   @Autowired
   private SourceRepository sourceRepository;
 
+  @Autowired 
+  ConceptSetItemRepository conceptSetItemRepository;
+
+  public ConceptSetItemRepository getConceptSetItemRepository() {
+    return conceptSetItemRepository;
+  }
+  
+  @Autowired 
+  private ConceptSetRepository conceptSetRepository;
+  
+  public ConceptSetRepository getConceptSetRepository() {
+    return conceptSetRepository;
+  }
+  
+  @Autowired
+  private ComparativeCohortAnalysisRepository comparativeCohortAnalysisRepository;
+  public ComparativeCohortAnalysisRepository getComparativeCohortAnalysisRepository() {
+    return comparativeCohortAnalysisRepository;
+  }
+  
+  @Autowired
+  private ComparativeCohortAnalysisExecutionRepository comparativeCohortAnalysisExecutionRepository;
+  public ComparativeCohortAnalysisExecutionRepository getComparativeCohortAnalysisExecutionRepository() {
+    return comparativeCohortAnalysisExecutionRepository;
+  }  
+  
   @Autowired
   private TransactionTemplate transactionTemplate;
 
@@ -179,5 +202,12 @@ public abstract class AbstractDaoService {
    */
   public void setTransactionTemplateRequiresNew(TransactionTemplate transactionTemplateRequiresNew) {
     this.transactionTemplateRequiresNew = transactionTemplateRequiresNew;
+  }
+  
+  /**
+   * @return the ohdsiSchema
+   */
+  public String getOhdsiSchema() {
+      return ohdsiSchema;
   }
 }

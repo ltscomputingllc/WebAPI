@@ -7,5 +7,7 @@ import org.springframework.data.repository.CrudRepository;
  */
 public interface RoleRepository extends CrudRepository<RoleEntity, Long> {
 
-    public RoleEntity findById(Long id);
+  public RoleEntity findById(Long id);
+  
+  public RoleEntity findByName(String name);
 }
