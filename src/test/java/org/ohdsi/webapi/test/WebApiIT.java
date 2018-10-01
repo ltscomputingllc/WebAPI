@@ -21,7 +21,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
  *
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = WebApi.class, webEnvironment = WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Ignore//do not run this test
 public abstract class WebApiIT {
