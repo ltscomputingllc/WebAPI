@@ -114,6 +114,7 @@
     <spring.datasource.hikari.minimum-idle>1</spring.datasource.hikari.minimum-idle>
 
     <!-- EMBEDDED SERVER CONFIGURATION (ServerProperties) -->
+    <server.host>localhost</server.host>
     <server.port>8080</server.port>
     <server.ssl.key-store></server.ssl.key-store>
     <server.ssl.key-store-password></server.ssl.key-store-password>
